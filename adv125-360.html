@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Honda ADV125 – 360° met accessoires (concept)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Urbanist:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#16171a;--mut:#6a6d73;--line:#e4e5e8;--bg:#f4f4f6;--card:#fff;--red:#cc0000;--ok:#1a7f4b}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  .wrap{max-width:1100px;margin:0 auto;padding:12px 12px 0}
+  .concept{font-size:13px;color:#6b5200;background:#fff7e0;border-radius:8px;padding:8px 12px;margin:0 0 12px}
+  h1{font-size:22px;line-height:1.2;margin:0 0 2px;text-transform:uppercase;letter-spacing:.01em}
+  .sub{color:var(--mut);margin:0 0 12px;font-size:14px}
+  .grid>*+*{margin-top:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+
+  /* ---------- viewer ---------- */
+  .viewer{overflow:hidden;user-select:none;-webkit-user-select:none;position:sticky;top:0;z-index:20;box-shadow:0 6px 14px -8px rgba(0,0,0,.25)}
+  .stage{position:relative;aspect-ratio:4/3;background:#fff;overflow:hidden;touch-action:pan-y;cursor:grab;outline-offset:-2px}
+  .stage.zoomed{touch-action:none;cursor:move}
+  .stage.drag{cursor:grabbing}
+  .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;will-change:transform}
+  .bar{position:absolute;left:0;top:0;height:3px;background:var(--red);transition:width .2s;z-index:3}
+  .badge{position:absolute;left:10px;top:10px;z-index:3;background:rgba(22,23,26,.82);color:#fff;font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px;letter-spacing:.04em}
+  .tools{position:absolute;right:8px;top:8px;z-index:3;display:flex;flex-direction:column;gap:8px}
+  .ib{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.94);color:var(--ink);font-size:22px;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .ib:disabled{opacity:.35}
+  .ib svg{width:20px;height:20px}
+  .hint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;background:rgba(22,23,26,.78);color:#fff;font-size:13px;padding:6px 14px;border-radius:99px;white-space:nowrap;pointer-events:none;transition:opacity .4s}
+  .zoomnote{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;background:rgba(22,23,26,.78);color:#fff;font-size:13px;padding:6px 14px;border-radius:99px;white-space:nowrap;border:0;display:none}
+  .stage.zoomed .zoomnote{display:block}
+  .stage.zoomed .hint{display:none}
+
+  .controls{padding:6px 14px 14px;display:grid;gap:12px;user-select:none;-webkit-user-select:none}
+  .scrub{display:flex;align-items:center;gap:10px}
+  .scrub span{font-size:12px;color:var(--mut);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:44px;background:transparent;margin:0;touch-action:none}
+  input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+  input[type=range]::-moz-range-track{height:4px;background:var(--line);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--ink);border:3px solid #fff;box-shadow:0 0 0 1px var(--ink);margin-top:-12px}
+  input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--ink);border:3px solid #fff;box-shadow:0 0 0 1px var(--ink)}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .lbl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;width:100%;margin-bottom:-4px}
+  .sw{width:44px;height:44px;border-radius:50%;border:0;background:none;padding:5px;cursor:pointer}
+  .sw i{display:block;width:100%;height:100%;border-radius:50%;border:1px solid rgba(0,0,0,.25)}
+  .sw[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--ink);}
+  .cname{font-weight:600;font-size:14px}
+  .chip{height:44px;border:1px solid var(--line);background:#fff;border-radius:99px;padding:0 16px;font:inherit;font-size:14px;cursor:pointer;color:var(--ink)}
+  .chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  /* ---------- volledig scherm ---------- */
+  body.fs{overflow:hidden}
+  body.fs .viewer{position:fixed;inset:0 0 var(--ch,200px) 0;z-index:50;border-radius:0;border:0;background:#fff;padding-top:env(safe-area-inset-top);box-shadow:none}
+  body.fs .stage{height:100%;aspect-ratio:auto}
+  body.fs .controls{position:fixed;left:0;right:0;bottom:0;z-index:50;border-radius:0;border:0;border-top:1px solid var(--line);padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+
+  /* ---------- accessoires ---------- */
+  .acc{padding:14px}
+  .acc h2{font-size:17px;margin:0 0 2px}
+  .acc p.s{margin:0 0 10px;color:var(--mut);font-size:14px}
+  .item{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .item .th{width:64px;height:64px;border-radius:10px;background:#f1f1f3 center/cover no-repeat;display:grid;place-items:center;color:#9a9da3}
+  .item .th svg{width:28px;height:28px}
+  .item b{display:block;font-size:15px;line-height:1.25}
+  .item small{display:block;color:var(--mut);font-size:13px;line-height:1.3;margin-top:2px}
+  .item .pr{font-weight:600;font-size:14px;margin-top:4px;display:block}
+  .tag{display:inline-block;font-size:11px;border-radius:99px;padding:1px 8px;margin-top:4px;background:#eef0f3;color:#555}
+  .tag.in{background:#e6f4ec;color:var(--ok)}
+  .tag[hidden]{display:none}
+  .tog{position:relative;width:52px;height:32px;flex:none}
+  .tog input{position:absolute;inset:0;opacity:0;margin:0;width:100%;height:100%;cursor:pointer}
+  .tog span{position:absolute;inset:0;border-radius:99px;background:#cfd2d7;transition:background .15s}
+  .tog span::after{content:"";position:absolute;left:3px;top:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .tog input:checked+span{background:var(--ink)}
+  .tog input:checked+span::after{transform:translateX(20px)}
+  .tog input:disabled+span{opacity:.55}
+  .tog input:focus-visible+span{outline:2px solid var(--red);outline-offset:2px}
+
+  /* ---------- totaalbalk ---------- */
+  .total{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  .total .t{flex:1;min-width:0}
+  .total .t small{display:block;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .total .t b{font-size:20px;font-variant-numeric:tabular-nums}
+  .cta{height:48px;border:0;border-radius:10px;background:var(--red);color:#fff;font:inherit;font-weight:700;padding:0 18px;cursor:pointer;white-space:nowrap}
+  .ctanote{display:none;position:fixed;left:14px;right:14px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:41;background:var(--ink);color:#fff;border-radius:10px;padding:10px 14px;font-size:14px}
+  .ctanote.on{display:block}
+  .src{color:var(--mut);font-size:12px;margin:12px 2px}
+
+  @media(min-width:820px){
+    .wrap{padding:24px 24px 0}
+    h1{font-size:30px}
+    .grid>*+*{margin-top:0}
+    .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);grid-template-areas:"v s" "c s";grid-template-rows:auto 1fr;align-items:start;gap:14px 20px}
+    .viewer{grid-area:v;position:static;box-shadow:none} .controls{grid-area:c} .side{grid-area:s}
+    .stage{aspect-ratio:16/9}
+    .total{position:sticky;bottom:auto;top:auto;border:1px solid var(--line);border-radius:14px;box-shadow:none;margin-top:12px}
+    body{padding-bottom:24px}
+    .ctanote{position:static;margin-top:8px}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+
+
+
+  /* ============ huisstijl sellingmotorbikes.nl (thema selling-motorbikes, uitgelezen 16-11-2026) ============
+     Koppen en knoppen: Urbanist 600/800, hoofdletters. Tekst: Inter. Donkerblauw #0E0F28, tekst #1F2937,
+     accent blauw #2A3EF4, pilvormige knoppen, afgeronde vlakken (22px), labels klein in hoofdletters. */
+  :root{--ink:#0e0f28;--text:#1f2937;--mut:rgba(17,24,39,.68);--line:#e5e7eb;--bg:#fff;--card:#fff;--red:#2a3ef4;--blue:#2a3ef4;--gold:#a78400;--ok:#1a7f4b;
+        --head:Urbanist,system-ui,-apple-system,"Segoe UI",sans-serif;--body:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+  body{font-family:var(--body);color:var(--text);background:var(--bg);line-height:1.6}
+  h1{font-family:var(--head);font-weight:800;font-size:36px;line-height:1.25;letter-spacing:-.01em;color:var(--ink);margin-bottom:4px}
+  .sub{color:var(--text);font-size:16px}
+  .card{border-radius:22px;border-color:var(--line)}
+  .viewer{box-shadow:0 10px 24px -14px rgba(14,15,40,.35)}
+  .badge{background:var(--ink);font-family:var(--head);font-weight:700;font-size:13px}
+  .bar{background:var(--blue)}
+  .ib{width:44px;height:44px;border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.94);color:#111827;box-shadow:none}
+  .hint,.zoomnote{background:rgba(14,15,40,.82);font-family:var(--body)}
+  .lbl,.total .t small{font-size:12.8px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:400}
+  .scrub span{color:var(--mut)}
+  input[type=range]::-webkit-slider-thumb{background:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+  input[type=range]::-moz-range-thumb{background:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+  .sw{width:42px;height:42px;padding:6px;border:1px solid #c9c9c9;border-radius:999px;margin-right:6px}
+  .sw i{border:1px solid #bfc3c7}
+  .sw[aria-pressed=true]{box-shadow:none;border:2px solid var(--gold);padding:5px}
+  .cname{font-size:18px;font-weight:600;color:var(--text)}
+  .chip{font-family:var(--head);font-weight:600;text-transform:uppercase;font-size:14px;border:1px solid var(--blue);color:var(--text);height:46px;padding:0 12px;flex:1;white-space:nowrap}
+  .chip[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#fff}
+  .acc h2{font-family:var(--head);font-weight:800;text-transform:uppercase;font-size:24px;letter-spacing:-.01em;color:var(--ink)}
+  .acc p.s{color:var(--text);font-size:15px}
+  details.cat summary{font-family:var(--head);font-weight:700;text-transform:uppercase;font-size:17px;color:var(--ink)}
+  details.cat summary::after{border-color:var(--ink)}
+  .item b{font-weight:600;font-size:16px;color:var(--ink)}
+  .item small{color:var(--mut);font-size:14px}
+  .item .pr{font-size:16px;font-weight:600;color:var(--text)}
+  .item .th{border-radius:14px;background-color:#f3f4f6}
+  .tog input:checked+span{background:var(--blue)}
+  .tog input:focus-visible+span{outline-color:var(--blue)}
+  .total .t b{font-size:20px;font-weight:600;color:var(--ink);white-space:nowrap;display:block}
+  .total{gap:10px}
+  .item small:not(.need){display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .cta{font-family:var(--head);font-weight:600;text-transform:uppercase;font-size:15px;background:var(--blue);border-radius:5000px;height:50px;padding:0 18px}
+  .ctanote{background:var(--ink);border-radius:14px}
+  .concept{border-radius:14px}
+  .stage{outline-color:var(--blue)}
+  @media(min-width:820px){ h1{font-size:58px} .acc h2{font-size:28px} .total{border-radius:22px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Honda ADV125</h1>
+  <p class="sub">Bekijk hem van alle kanten en stel hem samen met accessoires.</p>
+
+  <div class="grid">
+    <!-- ================= VIEWER ================= -->
+    <section class="card viewer" id="viewer" aria-label="360 graden weergave">
+      <div class="stage" id="stage" tabindex="0" role="img" aria-label="Honda ADV125, 360 graden. Sleep om te draaien.">
+        <div class="bar" id="bar"></div>
+        <span class="badge">360°</span>
+        <img id="img" alt="" draggable="false">
+        <div class="tools">
+          <button class="ib" id="fs" aria-label="Volledig scherm" title="Volledig scherm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+          <button class="ib" id="zin" aria-label="Inzoomen" title="Inzoomen">+</button>
+          <button class="ib" id="zout" aria-label="Uitzoomen" title="Uitzoomen">−</button>
+        </div>
+        <div class="hint" id="hint">↔ Sleep om te draaien</div>
+        <button class="zoomnote" id="zreset">Sleep om te verschuiven · tik hier om uit te zoomen</button>
+      </div>
+    </section>
+    <section class="card controls" id="controls" aria-label="Bediening">
+        <div class="scrub">
+          <input type="range" id="scrub" min="0" max="71" step="1" value="0" aria-label="Draaien">
+          <span id="deg">0°</span>
+        </div>
+        <div class="row">
+          <span class="lbl">Kleur</span>
+          <span id="sws" class="row" style="gap:2px"></span>
+          <span class="cname" id="cname"></span>
+        </div>
+        <div class="row">
+          <button class="chip" id="tilt" aria-pressed="false">Van boven bekijken</button>
+          <button class="chip" id="auto" aria-pressed="false">▶ Draai rond</button>
+        </div>
+    </section>
+
+    <!-- ================= ACCESSOIRES ================= -->
+    <div class="side">
+      <section class="card acc" aria-label="Accessoires">
+        <h2>Accessoires</h2>
+        <p class="s">Zet een accessoire aan en je ziet hem direct op de motor.</p>
+        <div id="acclist"></div>
+      </section>
+      <div class="total" id="total">
+        <div class="t"><small id="tsum">Honda ADV125</small><b id="tprice"></b></div>
+        <button class="cta" id="cta">Offerte aanvragen</button>
+      </div>
+      <div class="ctanote" id="ctanote"></div>
+    </div>
+  </div>
+  <p class="src">Beelden en adviesprijzen: Honda (opgehaald 16-11-2026). Prijzen incl. btw; motor incl. BPM en rijklaarkosten. Montage van accessoires niet inbegrepen.</p>
+</div>
+
+<script>
+(function(){
+  /* ================= gegevens ================= */
+  var VARIANT='adv125_2027', BIKE_PRICE=4999, RS='https://motorcycle-renderserver.honda.eu/image/'+VARIANT+'/';
+  var MEDIA='https://motorcycle-api.honda.eu/media/palma-accessory-images/';
+  var COLOURS=[
+    {id:'nh-c61p_pearl_falcon_grey',name:'Pearl Falcon Grey',hex:'#9a988c'},
+    {id:'nh-a16p_pearl_cool_white',name:'Pearl Cool White',hex:'#f4f4f2'},
+    {id:'nh-312m_matte_cynos_grey_metallic',name:'Matte Cynos Grey Metallic',hex:'#4a4c4e'},
+    {id:'r-414p_matte_pearl_diaspro_red',name:'Matte Pearl Diaspro Red',hex:'#8e1b22'}
+  ];
+  // visible = Honda rendert dit accessoire op de motor. showAt = draaihoek waarop je het goed ziet.
+  var ACCS=[
+    {id:'topbox',name:'Smart-topkofferset 40 L',desc:'Topkoffer met plaat, achterdrager en Smart-opener. Opent met je Smart Key.',price:534.99,
+     parts:['08L04-K0W-TB0','08L74-K0W-JA0','08L70-K1Z-J10','08L71-K0W-JA0','08L03-K0W-HB0'],visible:true,showAt:40,includes:['carrier'],
+     thumb:MEDIA+'TOPBOX1_450KB_27128_9936_M_24M.jpg'},
+    {id:'carrier',name:'Achterdrager',desc:'Stevige drager voor bagage achterop.',price:139.99,parts:['08L74-K0W-JA0'],visible:true,showAt:40},
+    {id:'grips',name:'Set verwarmde handvatten',desc:'Warme handen bij koud weer, in meerdere standen.',price:244.99,parts:['08T71-K1Z-J10','08T70-K0W-JA0'],visible:false,
+     thumb:MEDIA+'GRIP%20HEATERS_27127_9935_M_24M.jpg'},
+    {id:'buzzer',name:'Beveiligingsbuzzer',desc:'Zoemer als aanvulling op het alarmsysteem.',price:120,parts:['08E73-MKT-D71'],visible:false},
+    {id:'cover',name:'Motorhoes voor buiten',desc:'Waterbestendig en ademend, beschermt de lak tegen uv.',price:86.03,parts:['08P34-BC2-801'],visible:false,
+     thumb:MEDIA+'BodyCover_5409_2061_A_24M.jpg'}
+  ];
+
+  /* ================= instellingen ================= */
+  var MOBILE=window.matchMedia('(max-width:819px)').matches;
+  var SIZE=MOBILE?'800x600':'1280x720', SIZE_HI=MOBILE?'1600x1200':'2560x1440', RZOOM=MOBILE?11:9;
+  var N=72, STEP=360/N, PX_PER_FRAME=MOBILE?6:7, ZMAX=4;
+  var SAVE=!!(navigator.connection&&navigator.connection.saveData);   // databesparing: alleen elke 10 graden
+  var REDUCED=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  var $=function(id){return document.getElementById(id)};
+  var stage=$('stage'), img=$('img'), bar=$('bar'), hint=$('hint'), scrub=$('scrub');
+  var colour=0, tilt=0, frame=0, selected={}, cache={}, timer=null, hiTimer=null, touched=false;
+  var zoom=1, panX=0, panY=0;
+
+  /* ================= beelden ================= */
+  function accCode(){
+    var parts=[];
+    ACCS.forEach(function(a){ if(a.visible&&isOn(a.id)) a.parts.forEach(function(p){ if(parts.indexOf(p)<0) parts.push(p); }); });
+    return parts.length?parts.sort().join(','):'default';
+  }
+  function isOn(id){ if(selected[id]) return true; return ACCS.some(function(a){ return selected[a.id]&&a.includes&&a.includes.indexOf(id)>=0; }); }
+  function setKey(){ return colour+'|'+tilt+'|'+accCode(); }
+  function url(f,size){ var yaw=f*STEP; if(yaw>180) yaw-=360; return RS+COLOURS[colour].id+'/default/'+accCode()+'/'+yaw+'x'+tilt+'x'+RZOOM+'/default/'+(size||SIZE); }
+
+  function show(){
+    var set=cache[setKey()]||[], best=null;
+    for(var d=0; d<=N/2 && best===null; d++){
+      var a=(frame+d)%N, b=((frame-d)%N+N)%N;
+      if(set[a]&&set[a].ok) best=a; else if(set[b]&&set[b].ok) best=b;
+    }
+    img.src = best===null ? url(frame) : set[best].src;
+    scrub.value=frame; var deg=Math.round(frame*STEP); $('deg').textContent=deg+'°';
+    scrub.setAttribute('aria-valuetext',deg+' graden');
+    queueHi();
+  }
+  function queueHi(){
+    clearTimeout(hiTimer);
+    if(zoom<=1.01||timer) return;
+    var k=setKey(), f=frame, u=url(f,SIZE_HI);
+    hiTimer=setTimeout(function(){ var hi=new Image(); hi.onload=function(){ if(k===setKey()&&f===frame&&zoom>1.01) img.src=hi.src; }; hi.src=u; },250);
+  }
+  function load(){
+    var k=setKey();
+    show();
+    var set=cache[k]=cache[k]||[]; set.n=set.n||0;
+    var total=SAVE?N/2:N;
+    if(set.done){ bar.style.width='0'; return; }
+    bar.style.width=Math.max(3,set.n/total*100)+'%';
+    function cur(){ return k===setKey(); }
+    function get(i){
+      if(set[i]) return;
+      var im=new Image(); set[i]=im;
+      im.onload=function(){ im.ok=true; tick(); }; im.onerror=tick;
+      im.src=url(i);
+    }
+    function tick(){
+      set.n++;
+      if(cur()){ bar.style.width=(set.n/total*100)+'%'; if(set.n%6===0||set.n>=total) show(); }
+      if(set.n>=total){ set.done=true; if(cur()) bar.style.width='0'; }
+      if(set.n===N/2&&cur()) nudge();
+    }
+    for(var i=0;i<N;i+=2) get(i);
+    if(!SAVE) setTimeout(function(){ if(cur()) for(var i=1;i<N;i+=2) get(i); },500);
+  }
+  function step(d){ frame=((frame+d)%N+N)%N; show(); }
+
+  // kort heen en weer draaien, zodat je ziet dat het beeld kan bewegen
+  var nudged=false;
+  function nudge(){
+    if(nudged||touched||REDUCED) return; nudged=true;
+    var seq=[1,1,1,1,1,1,-1,-1,-1,-1,-1,-1], i=0;
+    var t=setInterval(function(){ if(touched||i>=seq.length){ clearInterval(t); return; } step(seq[i++]); },45);
+  }
+  // rustig naar een hoek draaien (bijv. om een accessoire te laten zien)
+  function rotateTo(yaw){
+    if(REDUCED){ frame=Math.round(((yaw%360)+360)%360/STEP)%N; show(); return; }
+    var target=Math.round(((yaw%360)+360)%360/STEP)%N, diff=((target-frame)%N+N)%N; if(diff>N/2) diff-=N;
+    var dir=diff>0?1:-1, left=Math.abs(diff); stopAuto();
+    var t=setInterval(function(){ if(left<=0){ clearInterval(t); return; } step(dir*Math.min(2,left)); left-=2; },30);
+  }
+
+  /* ================= zoom en verschuiven ================= */
+  function clampPan(){ var r=stage.getBoundingClientRect(), mx=r.width*(zoom-1)/2, my=r.height*(zoom-1)/2; panX=Math.max(-mx,Math.min(mx,panX)); panY=Math.max(-my,Math.min(my,panY)); }
+  function apply(){
+    clampPan();
+    img.style.transform='translate('+panX+'px,'+panY+'px) scale('+zoom+')';
+    stage.classList.toggle('zoomed',zoom>1.01);
+    $('zin').disabled=zoom>=ZMAX-0.01; $('zout').disabled=zoom<=1.01;
+    queueHi();
+  }
+  function zoomTo(z,cx,cy){
+    z=Math.max(1,Math.min(ZMAX,z)); cx=cx||0; cy=cy||0;
+    var k=z/zoom; panX=cx-(cx-panX)*k; panY=cy-(cy-panY)*k; zoom=z;
+    if(zoom<=1.01){ zoom=1; panX=panY=0; }
+    used(); apply();
+  }
+  function rel(x,y){ var r=stage.getBoundingClientRect(); return {x:x-r.left-r.width/2, y:y-r.top-r.height/2}; }
+  function used(){ touched=true; hint.style.opacity=0; }
+  $('zin').onclick=function(){ zoomTo(zoom*1.6); };
+  $('zout').onclick=function(){ zoomTo(zoom/1.6); };
+  $('zreset').onclick=function(){ zoomTo(1); };
+  stage.addEventListener('wheel',function(e){ if(!e.ctrlKey&&!e.metaKey) return; e.preventDefault(); var p=rel(e.clientX,e.clientY); zoomTo(zoom*(e.deltaY<0?1.2:1/1.2),p.x,p.y); },{passive:false});
+
+  /* ================= aanraken en slepen ================= */
+  // niet ingezoomd: 1 vinger opzij = draaien (omhoog/omlaag scrolt de pagina gewoon)
+  // ingezoomd:     1 vinger = beeld verschuiven; draaien kan dan met de schuifbalk
+  // 2 vingers:     knijpen = zoomen
+  var pts={}, last=null, acc=0, pinch=null, tapT=0, tapX=0, tapY=0, moved=0;
+  function cnt(){ return Object.keys(pts).length; }
+  function vals(){ return Object.keys(pts).map(function(k){return pts[k]}); }
+  stage.addEventListener('pointerdown',function(e){
+    if(e.target.closest('button')) return;
+    pts[e.pointerId]={x:e.clientX,y:e.clientY};
+    try{ stage.setPointerCapture(e.pointerId); }catch(_){}
+    used(); stopAuto(); stage.classList.add('drag'); moved=0;
+    if(cnt()===1){ last={x:e.clientX,y:e.clientY}; acc=0; }
+    if(cnt()===2){ var a=vals(); pinch={d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,z:zoom,mx:(a[0].x+a[1].x)/2,my:(a[0].y+a[1].y)/2}; }
+  });
+  stage.addEventListener('pointermove',function(e){
+    if(!pts[e.pointerId]) return;
+    pts[e.pointerId]={x:e.clientX,y:e.clientY};
+    if(cnt()>=2&&pinch){
+      var a=vals(), d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y), mx=(a[0].x+a[1].x)/2, my=(a[0].y+a[1].y)/2;
+      panX+=mx-pinch.mx; panY+=my-pinch.my; pinch.mx=mx; pinch.my=my;
+      var p=rel(mx,my); zoomTo(pinch.z*d/pinch.d,p.x,p.y); moved=99; return;
+    }
+    if(cnt()!==1||!last) return;
+    var dx=e.clientX-last.x, dy=e.clientY-last.y; last.x=e.clientX; last.y=e.clientY; moved+=Math.abs(dx)+Math.abs(dy);
+    if(zoom>1.01){ panX+=dx; panY+=dy; apply(); return; }
+    acc+=dx; var n=Math.trunc(acc/PX_PER_FRAME); if(n){ acc-=n*PX_PER_FRAME; step(-n); }
+  });
+  function up(e){
+    if(!pts[e.pointerId]) return;
+    delete pts[e.pointerId];
+    if(cnt()<2) pinch=null;
+    if(cnt()===0){
+      last=null; stage.classList.remove('drag');
+      // dubbel tikken = in- of uitzoomen op die plek
+      if(e.type==='pointerup'&&moved<10){
+        var now=Date.now();
+        if(now-tapT<320&&Math.abs(e.clientX-tapX)<30&&Math.abs(e.clientY-tapY)<30){ var p=rel(e.clientX,e.clientY); zoomTo(zoom>1.01?1:2.5,p.x,p.y); tapT=0; }
+        else { tapT=now; tapX=e.clientX; tapY=e.clientY; }
+      }
+    } else { var a=vals()[0]; last={x:a.x,y:a.y}; acc=0; }
+  }
+  stage.addEventListener('pointerup',up); stage.addEventListener('pointercancel',up);
+  stage.addEventListener('keydown',function(e){
+    if(e.key==='ArrowLeft'){ step(2); used(); e.preventDefault(); }
+    if(e.key==='ArrowRight'){ step(-2); used(); e.preventDefault(); }
+    if(e.key==='+'||e.key==='='){ zoomTo(zoom*1.6); }
+    if(e.key==='-'){ zoomTo(zoom/1.6); }
+    if(e.key==='Escape'){ if(document.body.classList.contains('fs')) toggleFs(); else zoomTo(1); }
+  });
+  scrub.addEventListener('input',function(){ used(); stopAuto(); frame=+scrub.value; show(); });
+  window.addEventListener('resize',apply);
+
+  /* ================= knoppen ================= */
+  var autoBtn=$('auto'), tiltBtn=$('tilt');
+  function stopAuto(){ if(timer){ clearInterval(timer); timer=null; autoBtn.setAttribute('aria-pressed','false'); autoBtn.textContent='▶ Draai rond'; queueHi(); } }
+  autoBtn.onclick=function(){ if(timer){ stopAuto(); return; } used(); timer=setInterval(function(){step(1)},55); autoBtn.setAttribute('aria-pressed','true'); autoBtn.textContent='❚❚ Stop'; };
+  tiltBtn.onclick=function(){ tilt=tilt?0:10; tiltBtn.setAttribute('aria-pressed',tilt?'true':'false'); load(); };
+  function toggleFs(){ document.documentElement.style.setProperty('--ch',$('controls').offsetHeight+'px'); document.body.classList.toggle('fs'); var on=document.body.classList.contains('fs'); $('fs').setAttribute('aria-label',on?'Volledig scherm sluiten':'Volledig scherm'); $('fs').innerHTML=on?'✕':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>'; setTimeout(apply,50); }
+  $('fs').onclick=toggleFs;
+
+  /* ================= kleuren ================= */
+  var sws=$('sws');
+  COLOURS.forEach(function(c,i){
+    var b=document.createElement('button'); b.className='sw'; b.title=c.name; b.setAttribute('aria-label',c.name); b.setAttribute('aria-pressed',i===0);
+    b.innerHTML='<i style="background:'+c.hex+'"></i>';
+    b.onclick=function(){ colour=i; [].forEach.call(sws.children,function(x,j){x.setAttribute('aria-pressed',j===i)}); $('cname').textContent=c.name; load(); };
+    sws.appendChild(b);
+  });
+  $('cname').textContent=COLOURS[0].name;
+
+  /* ================= accessoires ================= */
+  var euro=function(n){ return '€ '+n.toLocaleString('nl-NL',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}); };
+  var ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>';
+  var list=$('acclist');
+  ACCS.forEach(function(a){
+    var el=document.createElement('label'); el.className='item'; el.id='acc-'+a.id;
+    el.innerHTML='<span class="th"'+(a.thumb?' style="background-image:url(\''+a.thumb+'\')"':'')+'>'+(a.thumb?'':ICON)+'</span>'+
+      '<span><b>'+a.name+'</b><small>'+a.desc+'</small><span class="pr">'+euro(a.price)+'</span>'+
+      (a.visible?'':'<span class="tag">niet zichtbaar in beeld</span>')+'<span class="tag in" hidden>zit in de topkofferset</span></span>'+
+      '<span class="tog"><input type="checkbox" aria-label="'+a.name+'"><span></span></span>';
+    var cb=el.querySelector('input');
+    cb.addEventListener('change',function(){
+      selected[a.id]=cb.checked; used();
+      refreshAcc(); load();
+      if(cb.checked&&a.visible){ if(zoom>1.01) zoomTo(1); rotateTo(a.showAt); }
+    });
+    list.appendChild(el);
+  });
+  function refreshAcc(){
+    var sum=BIKE_PRICE, names=[];
+    ACCS.forEach(function(a){
+      var el=$('acc-'+a.id), cb=el.querySelector('input');
+      var included=ACCS.some(function(o){ return o!==a&&selected[o.id]&&o.includes&&o.includes.indexOf(a.id)>=0; });   // zit al in een gekozen set
+      if(included){ cb.checked=true; cb.disabled=true; } else { cb.disabled=false; cb.checked=!!selected[a.id]; }
+      el.querySelector('.tag.in').hidden=!included;
+      el.querySelector('.pr').style.textDecoration=included?'line-through':'';
+      if(selected[a.id]){
+        // een losse keuze die ook in een gekozen set zit, tellen we niet dubbel
+        var dubbel=ACCS.some(function(o){ return o!==a&&selected[o.id]&&o.includes&&o.includes.indexOf(a.id)>=0; });
+        if(!dubbel){ sum+=a.price; names.push(a.name); }
+      }
+    });
+    $('tprice').textContent=euro(Math.round(sum*100)/100);
+    $('tsum').textContent=names.length?'Incl. '+names.length+' accessoire'+(names.length>1?'s':''):'Honda ADV125';
+    return names;
+  }
+  $('cta').onclick=function(){
+    var names=refreshAcc(), n=$('ctanote');
+    n.textContent='Concept: hier gaat straks de offerte-aanvraag open met jouw keuze ('+COLOURS[colour].name+(names.length?', '+names.join(', '):'')+').';
+    n.classList.add('on'); clearTimeout(n._t); n._t=setTimeout(function(){ n.classList.remove('on'); },5000);
+  };
+
+  refreshAcc(); apply(); load();
+})();
+</script>
+<!--OFFERTE-START-->
+<style>
+  /* ============ offerte aanvragen (stappen, inruil) — in de huisstijl ============ */
+  body.of-open{overflow:hidden}
+  #of{position:fixed;inset:0;z-index:100;background:#fff;display:none;flex-direction:column;font-family:var(--body);color:var(--text)}
+  #of.on{display:flex}
+  .of-top{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--line)}
+  .of-top h2{flex:1;margin:0;font-family:var(--head);font-weight:800;text-transform:uppercase;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+  .of-x{width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,.12);background:#fff;font-size:20px;cursor:pointer;color:var(--ink)}
+  .of-steps{display:flex;gap:4px;padding:12px 16px;border-bottom:1px solid var(--line);background:#f7f7f9}
+  .of-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--mut);min-width:0}
+  .of-step i{width:30px;height:30px;border-radius:50%;background:#c3c6cc;color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:14px;font-family:var(--head)}
+  .of-step.cur i{background:var(--blue)} .of-step.done i{background:var(--ok)}
+  .of-step.cur{color:var(--ink);font-weight:600}
+  .of-step span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .of-main{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+  .of-grid{max-width:1100px;margin:0 auto;padding:16px;display:block}
+  .of-panel h3{font-family:var(--head);font-weight:800;text-transform:uppercase;font-size:22px;color:var(--ink);margin:6px 0 4px;letter-spacing:-.01em}
+  .of-panel p.lead{margin:0 0 16px;color:var(--text)}
+  .of-f{margin:0 0 16px}
+  .of-f label.l{display:block;font-size:12.8px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+  .of-f input[type=text],.of-f input[type=email],.of-f input[type=tel],.of-f textarea{width:100%;border:1px solid #1f2937;border-radius:24px;background:#fff;min-height:48px;padding:10px 18px;font:inherit;font-size:16px;color:var(--text)}
+  .of-f textarea{border-radius:18px;min-height:110px;resize:vertical}
+  .of-f input:focus,.of-f textarea:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:var(--blue)}
+  .of-f .err{color:#b42318;font-size:14px;margin-top:6px}
+  .of-f .ok{color:var(--ink);font-weight:600;margin-top:8px}
+  .of-f .hint{color:var(--mut);font-size:14px;margin-top:6px}
+  /* kentekenplaat */
+  .plate{display:flex;align-items:stretch;border-radius:8px;overflow:hidden;background:#f9c900;max-width:420px;border:2px solid #1b1b1b}
+  .plate .nl{width:38px;background:#0b4ea2;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding:4px 0;font-size:11px;font-weight:700}
+  .plate .nl::before{content:"";width:16px;height:16px;border-radius:50%;border:2px dotted #f9c900}
+  .plate input{flex:1;min-width:0;border:0!important;border-radius:0!important;background:transparent!important;text-align:center;font-family:var(--head)!important;font-weight:800;font-size:26px!important;letter-spacing:.14em;text-transform:uppercase;color:#111!important;min-height:56px!important;padding:0 8px!important}
+  .plate input::placeholder{color:rgba(0,0,0,.45)}
+  .plate input:focus{outline:none!important}
+  .plate:focus-within{box-shadow:0 0 0 3px rgba(42,62,244,.35)}
+  .plate.sm{max-width:150px;border-width:1px;border-radius:5px;display:inline-flex;vertical-align:middle}
+  .plate.sm .nl{width:16px;font-size:6px;padding:2px 0}.plate.sm .nl::before{width:7px;height:7px;border-width:1px}
+  .plate.sm b{padding:3px 8px;font-family:var(--head);font-weight:800;letter-spacing:.1em;color:#111;font-size:14px}
+  /* keuzekaarten */
+  .of-choice{display:grid;gap:12px}
+  .of-choice button{display:flex;align-items:center;gap:14px;text-align:left;border:1px solid #c9c9c9;border-radius:22px;background:#fff;padding:16px 18px;font:inherit;cursor:pointer;color:var(--text);min-height:76px}
+  .of-choice button b{display:block;font-family:var(--head);font-weight:700;text-transform:uppercase;color:var(--ink);font-size:17px}
+  .of-choice button small{color:var(--mut);font-size:14px}
+  .of-choice button[aria-pressed=true]{border:2px solid var(--blue);padding:15px 17px;background:#f5f6ff}
+  .of-choice button::before{content:"";width:22px;height:22px;border-radius:50%;border:2px solid #9aa0a8;flex:none}
+  .of-choice button[aria-pressed=true]::before{border:7px solid var(--blue)}
+  /* foto's */
+  .of-tip{display:flex;gap:10px;background:#f5f6ff;border:1px solid #d9ddff;border-radius:18px;padding:12px 14px;margin:0 0 16px;color:var(--ink);font-size:15px}
+  .of-tip svg{width:22px;height:22px;flex:none;color:var(--blue);margin-top:1px}
+  .of-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .of-photos .ph{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#f3f4f6}
+  .of-photos .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .of-photos .ph button{position:absolute;right:4px;top:4px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(14,15,40,.8);color:#fff;font-size:16px;cursor:pointer}
+  .of-photos label.add{aspect-ratio:1;border:2px dashed var(--blue);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--blue);font-family:var(--head);font-weight:700;text-transform:uppercase;font-size:13px;cursor:pointer;text-align:center;padding:6px}
+  .of-photos label.add span{font-size:28px;line-height:1;font-weight:400}
+  .of-photos input{position:absolute;width:1px;height:1px;opacity:0}
+  .of-photos label.add:focus-within{outline:2px solid var(--blue);outline-offset:2px}
+  .of-check{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid #c9c9c9;border-radius:18px;cursor:pointer}
+  .of-check input{width:24px;height:24px;flex:none;accent-color:var(--blue);margin:0}
+  .of-check b{display:block;color:var(--ink)} .of-check small{color:var(--mut);font-size:14px}
+  .of-check.plain{border:0;padding:4px 0}
+  /* overzicht */
+  .of-sum{border:1px solid var(--line);border-radius:22px;margin:0 0 16px;overflow:hidden;background:#fff}
+  .of-sum summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-family:var(--head);font-weight:700;text-transform:uppercase;color:var(--ink)}
+  .of-sum summary::-webkit-details-marker{display:none}
+  .of-sum summary span{flex:1} .of-sum summary em{font-style:normal;font-family:var(--body);font-weight:600;text-transform:none}
+  .of-sum summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg);margin-bottom:4px}
+  .of-sum[open] summary::after{transform:rotate(-135deg);margin-bottom:-4px}
+  .of-sumb{padding:0 16px 16px}
+  .of-sumb img{width:100%;aspect-ratio:16/10;object-fit:contain;display:block}
+  .of-sumb h4{font-family:var(--head);font-weight:800;text-transform:uppercase;margin:6px 0 2px;color:var(--ink);font-size:18px}
+  .of-sumb dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+  .of-sumb dt{color:var(--mut)} .of-sumb dd{margin:0;text-align:right;font-weight:500}
+  .of-sumb .tot{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;font-weight:600;color:var(--ink);font-size:18px}
+  .of-sumb h5{font-family:var(--head);font-weight:700;text-transform:uppercase;margin:16px 0 6px;color:var(--ink);font-size:15px;border-top:1px solid var(--line);padding-top:12px}
+  .of-sumb .muted{color:var(--mut);font-size:14px}
+  /* onderbalk */
+  .of-bot{display:flex;gap:10px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#fff}
+  .of-btn{height:50px;border-radius:5000px;font-family:var(--head);font-weight:600;text-transform:uppercase;font-size:15px;padding:0 22px;cursor:pointer;border:1px solid var(--blue);background:#fff;color:var(--text)}
+  .of-btn.pri{background:var(--blue);color:#fff;flex:1}
+  .of-btn:disabled{opacity:.4;cursor:default}
+  .of-done{text-align:center;padding:20px 0}
+  .of-done .ic{width:64px;height:64px;border-radius:50%;background:#e6f4ec;color:var(--ok);display:grid;place-items:center;font-size:32px;margin:0 auto 12px}
+  .of-note{background:#fff7e0;border-radius:14px;padding:10px 14px;color:#6b5200;font-size:14px;text-align:left;margin:16px 0}
+  @media(min-width:820px){
+    #of{background:rgba(14,15,40,.55);align-items:center;justify-content:center;padding:24px}
+    .of-box{background:#fff;border-radius:22px;width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden}
+    .of-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:24px;padding:24px}
+    .of-sum{order:2;margin:0} .of-sum summary{pointer-events:none} .of-sum summary::after{display:none}
+    .of-top{padding:16px 24px} .of-steps{padding:14px 24px} .of-bot{padding:14px 24px;justify-content:flex-end} .of-btn.pri{flex:none;min-width:200px}
+    .of-photos{grid-template-columns:repeat(4,1fr)}
+    .of-choice{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:819px){ .of-box{display:flex;flex-direction:column;height:100%} .of-step:not(.cur) span{display:none} }
+</style>
+
+<div id="of" role="dialog" aria-modal="true" aria-labelledby="of-title">
+ <div class="of-box">
+  <div class="of-top"><h2 id="of-title">Offerte aanvragen</h2><button class="of-x" id="of-x" aria-label="Sluiten">✕</button></div>
+  <div class="of-steps" id="of-steps"></div>
+  <div class="of-main" id="of-main">
+   <div class="of-grid">
+    <details class="of-sum" id="of-sum">
+      <summary><span>Jouw overzicht</span><em id="of-sumtot"></em></summary>
+      <div class="of-sumb" id="of-sumb"></div>
+    </details>
+    <div class="of-panel" id="of-panel"></div>
+   </div>
+  </div>
+  <div class="of-bot" id="of-bot">
+    <button class="of-btn" id="of-prev">Vorige</button>
+    <button class="of-btn pri" id="of-next">Volgende</button>
+  </div>
+ </div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var S={inruil:null,plate:'',rdw:null,rdwState:'',merk:'',km:'',photos:[],desc:'',schade:false,schadeTxt:'',schadePhotos:[],naam:'',email:'',tel:'',opm:'',akkoord:false};
+  var cur='inruil', done=false;
+  var NAMES={inruil:'Inruil',kenteken:'Kenteken',fotos:"Foto's",schade:'Schade',gegevens:'Gegevens'};
+  function steps(){ var s=['inruil']; if(S.inruil){ s.push('kenteken','fotos'); if(S.schade) s.push('schade'); } s.push('gegevens'); return s; }
+  function esc(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+
+  /* ---------- wat de klant heeft samengesteld (uit de pagina gelezen) ---------- */
+  function keuze(){
+    var acc=[].map.call(document.querySelectorAll('#acclist .item'),function(el){
+      var cb=el.querySelector('input'); if(!cb.checked) return null;
+      var pr=el.querySelector('.pr'), incl=pr.style.textDecoration==='line-through';
+      return {name:el.querySelector('b').textContent, price:incl?'inbegrepen':pr.textContent};
+    }).filter(Boolean);
+    return {model:document.querySelector('h1').textContent, kleur:$('cname').textContent, total:$('tprice').textContent, img:$('img').src, acc:acc};
+  }
+
+  /* ---------- kenteken ---------- */
+  var MASK={LLDDDD:[2,2,2],DDDDLL:[2,2,2],DDLLDD:[2,2,2],LLDDLL:[2,2,2],LLLLDD:[2,2,2],DDLLLL:[2,2,2],DDLLLD:[2,3,1],DLLLDD:[1,3,2],LLDDDL:[2,3,1],LDDDLL:[1,3,2],LLLDDL:[3,2,1],LDDLLL:[1,2,3],DLLDDD:[1,2,3],DDDLLD:[3,2,1]};
+  function clean(v){ return v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6); }
+  function fmt(p){ if(p.length!==6) return p; var m=MASK[p.replace(/[A-Z]/g,'L').replace(/\d/g,'D')]; if(!m) return p; return p.slice(0,m[0])+'-'+p.slice(m[0],m[0]+m[1])+'-'+p.slice(m[0]+m[1]); }
+  var rdwSeq=0;
+  function lookup(){
+    var p=S.plate, my=++rdwSeq; S.rdw=null;
+    if(p.length!==6){ S.rdwState=''; paintRdw(); return; }
+    S.rdwState='laden'; paintRdw();
+    var base='https://opendata.rdw.nl/resource/';
+    fetch(base+'m9d7-ebf2.json?kenteken='+p).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(a){
+      if(my!==rdwSeq) return;
+      if(!a.length){ S.rdwState='nietgevonden'; paintRdw(); return; }
+      var v=a[0];
+      S.rdw={merk:tc(v.merk), type:v.handelsbenaming||'', jaar:(v.datum_eerste_toelating||'').slice(0,4), soort:v.voertuigsoort||'', kleur:v.eerste_kleur&&v.eerste_kleur!=='N.v.t.'?tc(v.eerste_kleur):'', cc:v.cilinderinhoud||''};
+      S.rdwState='ok'; paintRdw();
+      return fetch(base+'8ys7-d773.json?kenteken='+p).then(function(r){ return r.ok?r.json():[]; }).then(function(b){
+        if(my!==rdwSeq||!b.length) return;
+        S.rdw.brandstof=b[0].brandstof_omschrijving||''; S.rdw.kw=b[0].nettomaximumvermogen||''; paintSum();
+      });
+    }).catch(function(){ if(my===rdwSeq){ S.rdwState='fout'; paintRdw(); } });
+  }
+  function tc(s){ s=String(s||'').toLowerCase(); return s.replace(/(^|[\s-])([a-zà-ÿ])/g,function(m,a,b){return a+b.toUpperCase()}); }
+  function voertuig(){ return S.rdw?(S.rdw.merk+' '+S.rdw.type).trim():S.merk; }
+  function paintRdw(){
+    var el=$('of-rdw'); if(!el) return;
+    var h='';
+    if(S.rdwState==='laden') h='<div class="hint">Kenteken opzoeken bij de RDW…</div>';
+    if(S.rdwState==='ok') h='<div class="ok">'+esc(voertuig())+(S.rdw.jaar?' uit '+esc(S.rdw.jaar):'')+'</div>';
+    if(S.rdwState==='nietgevonden') h='<div class="err">Dit kenteken vinden we niet bij de RDW. Controleer het kenteken, of vul hieronder zelf merk en model in.</div>';
+    if(S.rdwState==='fout') h='<div class="err">De RDW is nu niet bereikbaar. Vul hieronder zelf merk en model in.</div>';
+    el.innerHTML=h;
+    var man=$('of-manual'); if(man) man.hidden=!(S.rdwState==='nietgevonden'||S.rdwState==='fout');
+    paintSum(); gate();
+  }
+
+  /* ---------- overzicht ---------- */
+  function paintSum(){
+    var k=keuze(), h='<img src="'+esc(k.img)+'" alt=""><h4>'+esc(k.model)+'</h4><dl><dt>Kleur</dt><dd>'+esc(k.kleur)+'</dd>';
+    k.acc.forEach(function(a){ h+='<dt>'+esc(a.name)+'</dt><dd>'+esc(a.price)+'</dd>'; });
+    h+='</dl><div class="tot"><span>Totaal</span><span>'+esc(k.total)+'</span></div><h5>Inruil</h5>';
+    if(S.inruil===null) h+='<div class="muted">Nog niet gekozen.</div>';
+    else if(!S.inruil) h+='<div class="muted">Geen inruil.</div>';
+    else if(!S.plate) h+='<div class="muted">Vul eerst je kenteken in.</div>';
+    else {
+      h+='<p style="margin:0 0 8px"><span class="plate sm"><span class="nl">NL</span><b>'+esc(fmt(S.plate))+'</b></span></p><dl>';
+      var r=S.rdw||{}, rows=[['Voertuig',voertuig()],['Kilometerstand',S.km?Number(S.km).toLocaleString('nl-NL')+' km':''],['Bouwjaar',r.jaar],['Soort',r.soort],['Kleur',r.kleur],['Brandstof',r.brandstof],['Cilinderinhoud',r.cc?r.cc+' cc':''],['Vermogen',r.kw?Math.round(r.kw)+' kW':''],
+        ["Foto's",S.photos.length?S.photos.length+' toegevoegd':''],['Schade',S.schade?'Ja'+(S.schadePhotos.length?', '+S.schadePhotos.length+" foto's":''):(cur==='fotos'||steps().indexOf(cur)>steps().indexOf('fotos')?'Nee':'')]];
+      rows.forEach(function(x){ if(x[1]) h+='<dt>'+x[0]+'</dt><dd>'+esc(x[1])+'</dd>'; });
+      h+='</dl>';
+    }
+    $('of-sumb').innerHTML=h; $('of-sumtot').textContent=k.total;
+  }
+
+  /* ---------- foto's ---------- */
+  function photoGrid(key,label){
+    return '<div class="of-photos" data-ph="'+key+'"></div>';
+  }
+  function paintPhotos(key){
+    var box=document.querySelector('[data-ph="'+key+'"]'); if(!box) return;
+    var arr=S[key], h='';
+    arr.forEach(function(p,i){ h+='<div class="ph"><img src="'+p.url+'" alt="Foto '+(i+1)+'"><button type="button" data-rm="'+i+'" aria-label="Foto '+(i+1)+' verwijderen">✕</button></div>'; });
+    if(arr.length<10) h+='<label class="add"><span>+</span>Foto toevoegen<input type="file" accept="image/*" multiple></label>';
+    box.innerHTML=h;
+    var inp=box.querySelector('input');
+    if(inp) inp.addEventListener('change',function(){
+      [].slice.call(inp.files,0,10-arr.length).forEach(function(f){ if(/^image\//.test(f.type)) arr.push({file:f,url:URL.createObjectURL(f)}); });
+      paintPhotos(key); paintSum(); gate();
+    });
+    [].forEach.call(box.querySelectorAll('[data-rm]'),function(b){ b.onclick=function(){ var p=arr.splice(+b.getAttribute('data-rm'),1)[0]; if(p) URL.revokeObjectURL(p.url); paintPhotos(key); paintSum(); gate(); }; });
+  }
+
+  /* ---------- stappen tekenen ---------- */
+  var TIP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+  function render(){
+    var st=steps(), ix=st.indexOf(cur), P=$('of-panel'), h='';
+    $('of-steps').style.display=done?'none':'';
+    $('of-steps').innerHTML=st.map(function(s,i){ return '<div class="of-step'+(i===ix?' cur':'')+(i<ix?' done':'')+'"><i>'+(i<ix?'✓':i+1)+'</i><span>'+NAMES[s]+'</span></div>'; }).join('');
+    if(done){
+      var k=keuze();
+      h='<div class="of-done"><div class="ic">✓</div><h3>Bedankt, '+esc(S.naam.split(' ')[0])+'!</h3><p class="lead">Zo ziet het eruit als je aanvraag is verstuurd. Je krijgt dan zo snel mogelijk een offerte'+(S.inruil?' met een inruilindicatie':'')+' op '+esc(S.email)+'.</p>'+
+        '<div class="of-note"><b>Dit is een testversie.</b> Er is niets verstuurd en je gegevens en foto\'s zijn nergens opgeslagen.</div></div>';
+      P.innerHTML=h; $('of-prev').hidden=true; $('of-next').textContent='Sluiten'; $('of-next').disabled=false; paintSum(); $('of-sum').open=true; return;
+    }
+    if(cur==='inruil'){
+      h='<h3>Wil je een voertuig inruilen?</h3><p class="lead">Rijd je nu een motor of scooter? Dan nemen we die graag mee in je offerte.</p>'+
+        '<div class="of-choice"><button type="button" data-inruil="1" aria-pressed="'+(S.inruil===true)+'"><span><b>Ja, ik wil inruilen</b><small>Vul je kenteken in en ontvang een inruilindicatie.</small></span></button>'+
+        '<button type="button" data-inruil="0" aria-pressed="'+(S.inruil===false)+'"><span><b>Nee, geen inruil</b><small>Ga direct door naar je gegevens.</small></span></button></div>';
+    }
+    if(cur==='kenteken'){
+      h='<h3>Wat is je voertuig waard?</h3><p class="lead">Vul je kenteken in. We halen de gegevens op bij de RDW.</p>'+
+        '<div class="of-f"><label class="l" for="of-plate">Kenteken</label><div class="plate"><span class="nl">NL</span><input id="of-plate" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="KEN-TE-KEN" maxlength="8" value="'+esc(fmt(S.plate))+'"></div><div id="of-rdw"></div></div>'+
+        '<div class="of-f" id="of-manual" hidden><label class="l" for="of-merk">Merk en model</label><input id="of-merk" type="text" placeholder="Bijv. Honda X-ADV 2021" value="'+esc(S.merk)+'"></div>'+
+        '<div class="of-f"><label class="l" for="of-km">Kilometerstand *</label><input id="of-km" type="text" inputmode="numeric" placeholder="Bijv. 12.000" value="'+(S.km?Number(S.km).toLocaleString('nl-NL'):'')+'"></div>';
+    }
+    if(cur==='fotos'){
+      h='<h3>Foto\'s en omschrijving</h3><p class="lead">Laat zien hoe je '+esc(voertuig()||'voertuig')+' erbij staat.</p>'+
+        '<div class="of-tip">'+TIP+'<span><b>Hoe beter de foto\'s, hoe beter wij een indicatie kunnen geven.</b> Maak ze bij daglicht: beide zijkanten, voor, achter, de teller en eventuele accessoires.</span></div>'+
+        '<div class="of-f"><label class="l">Foto\'s <span style="text-transform:none;letter-spacing:0">(optioneel, max. 10)</span></label>'+photoGrid('photos')+'</div>'+
+        '<div class="of-f"><label class="l" for="of-desc">Omschrijving <span style="text-transform:none;letter-spacing:0">(optioneel)</span></label><textarea id="of-desc" placeholder="Bijv. onderhoudshistorie, aantal eigenaren, accessoires, bijzonderheden.">'+esc(S.desc)+'</textarea></div>'+
+        '<label class="of-check"><input type="checkbox" id="of-schade"'+(S.schade?' checked':'')+'><span><b>Schade aanwezig?</b><small>Vink aan als je voertuig schade heeft. Je kunt die in de volgende stap toelichten.</small></span></label>';
+    }
+    if(cur==='schade'){
+      h='<h3>Welke schade is er?</h3><p class="lead">Beschrijf de schade zo precies mogelijk en voeg een foto toe.</p>'+
+        '<div class="of-f"><label class="l" for="of-stxt">Wat voor schade? *</label><textarea id="of-stxt" placeholder="Bijv. kras op het rechter zijpaneel, deuk in de tank, valschade links.">'+esc(S.schadeTxt)+'</textarea></div>'+
+        '<div class="of-tip">'+TIP+'<span><b>Hoe beter de foto\'s, hoe beter wij een indicatie kunnen geven.</b> Maak een foto van dichtbij en één waarop je ziet waar de schade zit.</span></div>'+
+        '<div class="of-f"><label class="l">Foto\'s van de schade <span style="text-transform:none;letter-spacing:0">(max. 10)</span></label>'+photoGrid('schadePhotos')+'</div>';
+    }
+    if(cur==='gegevens'){
+      h='<h3>Jouw gegevens</h3><p class="lead">Waar mogen we je offerte naartoe sturen?</p>'+
+        '<div class="of-f"><label class="l" for="of-naam">Naam *</label><input id="of-naam" type="text" autocomplete="name" value="'+esc(S.naam)+'"></div>'+
+        '<div class="of-f"><label class="l" for="of-email">E-mailadres *</label><input id="of-email" type="email" autocomplete="email" inputmode="email" placeholder="naam@domein.nl" value="'+esc(S.email)+'"></div>'+
+        '<div class="of-f"><label class="l" for="of-tel">Telefoonnummer *</label><input id="of-tel" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12345678" value="'+esc(S.tel)+'"></div>'+
+        '<div class="of-f"><label class="l" for="of-opm">Opmerking <span style="text-transform:none;letter-spacing:0">(optioneel)</span></label><textarea id="of-opm" style="min-height:80px">'+esc(S.opm)+'</textarea></div>'+
+        '<label class="of-check plain"><input type="checkbox" id="of-akk"'+(S.akkoord?' checked':'')+'><span>Ik ga akkoord met de <u>voorwaarden</u>.</span></label>';
+    }
+    P.innerHTML=h;
+    $('of-prev').hidden=ix===0; $('of-next').textContent=ix===st.length-1?'Offerte aanvragen':'Volgende';
+    bind(); paintPhotos('photos'); paintPhotos('schadePhotos'); paintRdw(); paintSum(); gate();
+    $('of-main').scrollTop=0;
+  }
+  function bind(){
+    [].forEach.call(document.querySelectorAll('[data-inruil]'),function(b){ b.onclick=function(){ S.inruil=b.getAttribute('data-inruil')==='1'; render(); }; });
+    var p=$('of-plate'); if(p) p.addEventListener('input',function(){ var c=clean(p.value); var changed=c!==S.plate; S.plate=c; p.value=fmt(c); if(changed) lookup(); });
+    var map={'of-merk':'merk','of-desc':'desc','of-stxt':'schadeTxt','of-naam':'naam','of-email':'email','of-tel':'tel','of-opm':'opm'};
+    Object.keys(map).forEach(function(id){ var el=$(id); if(el) el.addEventListener('input',function(){ S[map[id]]=el.value; if(id==='of-merk') paintSum(); gate(); }); });
+    var km=$('of-km'); if(km) km.addEventListener('input',function(){ S.km=km.value.replace(/\D/g,'').slice(0,7); km.value=S.km?Number(S.km).toLocaleString('nl-NL'):''; paintSum(); gate(); });
+    var sc=$('of-schade'); if(sc) sc.addEventListener('change',function(){ S.schade=sc.checked; var st=steps(), ix=st.indexOf(cur); $('of-steps').innerHTML=st.map(function(s,i){ return '<div class="of-step'+(i===ix?' cur':'')+(i<ix?' done':'')+'"><i>'+(i<ix?'✓':i+1)+'</i><span>'+NAMES[s]+'</span></div>'; }).join(''); paintSum(); });
+    var ak=$('of-akk'); if(ak) ak.addEventListener('change',function(){ S.akkoord=ak.checked; gate(); });
+  }
+  function valid(){
+    if(cur==='inruil') return S.inruil!==null;
+    if(cur==='kenteken') return S.plate.length===6 && S.km!=='' && (S.rdwState==='ok' || ((S.rdwState==='nietgevonden'||S.rdwState==='fout') && S.merk.trim().length>2));
+    if(cur==='schade') return S.schadeTxt.trim().length>2;
+    if(cur==='gegevens') return S.naam.trim().length>1 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(S.email.trim()) && S.tel.replace(/\D/g,'').length>=9 && S.akkoord;
+    return true;
+  }
+  function gate(){ if(!done) $('of-next').disabled=!valid(); }
+
+  $('of-next').onclick=function(){
+    if(done){ close(); return; }
+    if(!valid()) return;
+    var st=steps(), ix=st.indexOf(cur);
+    if(ix===st.length-1){ done=true; render(); return; }
+    cur=st[ix+1]; render();
+  };
+  $('of-prev').onclick=function(){ var st=steps(), ix=st.indexOf(cur); if(ix>0){ cur=st[ix-1]; render(); } };
+  function open(){ done=false; cur='inruil'; $('of').classList.add('on'); document.body.classList.add('of-open'); $('of-sum').open=window.matchMedia('(min-width:820px)').matches; render(); $('of-x').focus(); }
+  function close(){ $('of').classList.remove('on'); document.body.classList.remove('of-open'); $('cta').focus(); }
+  $('of-x').onclick=close;
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&$('of').classList.contains('on')) close(); });
+  $('cta').onclick=open;
+})();
+</script>
+<!--OFFERTE-END-->
+</body>
+</html>
